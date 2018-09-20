@@ -1,10 +1,187 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<title>학점계산기(부산대용)</title>
+		<link href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+		<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+		<meta name="viewport" content="width=device-width, user-scalable=no">
+		<title>학점계산기(for PNU)</title>
+		<script type="text/javascript">
+			function convertToScore(str) {
+				if(str == "A+") {
+					return 4.5;
+				}
+				else if(str == "A0") {
+					return 4.0;
+				}
+				else if(str == "B+") {
+					return 3.5;
+				}
+				else if(str == "B0") {
+					return 3.0;
+				}
+				else if(str == "C+") {
+					return 2.5;
+				}
+				else if(str == "C0") {
+					return 2.0;
+				}
+				else if(str == "D+") {
+					return 1.5;
+				}
+				else if(str == "D0") {
+					return 1.0;
+				}
+				else if(str == "F") {
+					return 0.0;
+				}
+				else {
+					return -1;
+				}
+			}
+			$(document).ready(function() {
+				$('#startBtn').click(function() {
+					var textValue = $('#texts').val();
+					if(textValue == "") {
+						alert('성적표를 복사한 텍스트를 넣어주세요.');
+					}
+					else {
+						var divArr = textValue.split('\t');
+						//console.log(divArr);
+					}//성적표 텍스트 값 쪼개서 가지기
+
+					var subjects = [];//수업별로 다 나누기
+					for(var i = 0; i < (divArr.length / 6); ++i) {
+						var tempArr = [];
+						for(var j = 0; j < 6; ++j) {
+							if(j == 0) {
+								divArr[(6 * i) + j]
+							}
+							tempArr.push(divArr[(6 * i) + j]);
+						}
+						subjects.push(tempArr);
+					}//하나씩 잘게 잘라진것을 6개씩 묶기
+					//console.log(subjects);
+
+					var etcKyo = 0;//그냥이 성적수
+					var etcKyoScore = 0;//num붙은게 학점수
+					var kyoSun = 0;
+					var kyoSunScore = 0;
+					var ilSun = 0;
+					var ilSunScore = 0;
+					var majorFundamental = 0;
+					var majorFundamentalScore = 0;
+					var majorSelection = 0;
+					var majorSelectionScore = 0;
+					var majorEssential = 0;
+					var majorEssentialScore = 0;
+					var count = 0;
+					var etcSubjectScore = 0;
+
+					for(var i = 0; i < subjects.length; ++i) {
+						var subjectType = subjects[i][0];
+						var grade = convertToScore(subjects[i][5]);
+						var score = parseInt(subjects[i][4]);
+
+						if(grade >= 0) {
+							if(subjectType.includes('교양선택')) {
+								count++;
+								kyoSunScore += score;
+								kyoSun += grade * score;
+							}
+							else if(subjectType.includes('일반선택')) {
+								count++;
+								ilSunScore += score;
+								ilSun += grade * score;
+							}
+							else if(subjectType.includes('교양')) {
+								count++;
+								etcKyoScore += score;
+								etcKyo += grade * score;
+							}
+							else if(subjectType.includes('전공기초')) {
+								count++;
+								majorFundamentalScore += score;
+								majorFundamental += grade * score;
+							}
+							else if(subjectType.includes('전공필수')) {
+								count++;
+								majorEssentialScore += score;
+								majorEssential += grade * score;
+							}
+							else if(subjectType.includes('전공')) {
+								count++;
+								majorSelectionScore += score;
+								majorSelection += grade * score;
+							}
+							else {
+								alert('Error');
+							}
+						}
+						else {//패스과목 등등..
+							etcSubjectScore += score;
+						}
+					}
+					var majorScore = majorFundamentalScore + majorEssentialScore + majorSelectionScore;
+					var majorTotal = majorFundamental + majorEssential + majorSelection;
+					var totalScore = etcKyoScore + kyoSunScore + ilSunScore + majorScore;
+					var total = etcKyo + kyoSun + ilSun + majorTotal;
+					$('#result').empty();
+					$('#result').append('<table class="table" id="resultTbl"></table>');
+					$('#resultTbl').append('<thead class="thead-dark" id="resultTblHead"></thead>');
+					$('#resultTbl').append('<tbody id="resultTblBody"></tbody>');
+					$('#resultTblHead').append('<tr id="resultTblHeadTr"></tr>');
+					$('#resultTblHeadTr').append('<th>교양</th>'
+						+ '<th>교양선택</th>'
+						+ '<th>일반선택</th>'
+						+ '<th>전공기초</th>'
+						+ '<th>전공필수</th>'
+						+ '<th>전공선택 등..</th>'
+						+ '<th>패스과목 등..</th>');
+					$('#resultTblBody').append('<tr><td>' + etcKyoScore + '</td><td>'
+						+ kyoSunScore + '</td><td>'
+						+ ilSunScore + '</td><td>'
+						+ majorFundamentalScore + '</td><td>'
+						+ majorEssentialScore + '</td><td>'
+						+ majorSelectionScore + '</td><td>'
+						+ etcSubjectScore + '</td></tr>');
+					$('#resultTblBody').append('<tr><td>' + (Math.floor((etcKyo/etcKyoScore)*100)*0.01) + '</td><td>'
+						+ (Math.floor((kyoSun/kyoSunScore)*100)*0.01) + '</td><td>'
+						+ (Math.floor((ilSun/ilSunScore)*100)*0.01) + '</td><td>'
+						+ (Math.floor((majorFundamental/majorFundamentalScore)*100)*0.01) + '</td><td>'
+						+ (Math.floor((majorEssential/majorEssentialScore)*100)*0.01) + '</td><td>'
+						+ (Math.floor((majorSelection/majorSelectionScore)*100)*0.01) + '</td><td>'
+						+ '-' + '</td></tr>');
+
+
+					$('#result').append('<table class="table" id="resultTbl2"></table>');
+					$('#resultTbl2').append('<thead class="thead-dark" id="resultTbl2Head"></thead>');
+					$('#resultTbl2').append('<tbody id="resultTbl2Body"></tbody>');
+					$('#resultTbl2Head').append('<tr><th>전체평점</th><th>전공평점</th></tr>');
+					$('#resultTbl2Body').append('<tr><td>'
+						+ totalScore + '</td><td>'
+						+ majorScore + '</td></tr>');
+					$('#resultTbl2Body').append('<tr><td>'
+						+ (Math.floor((total/totalScore)*100)*0.01) + '</td><td>'
+						+ (Math.floor((majorTotal/majorScore)*100)*0.01) + '</td></tr>');
+					
+				});
+			});
+			
+		</script>
 	</head>
 
 	<body>
-		
+		<div class="container">
+			<h3>학점계산기<small>for PNU</small></h3>
+		</div>
+		<div class="container">
+			<textarea class="form-control" id="texts" placeholder="여기에 성적을 복사해서 붙여넣으세요"></textarea>
+			<button class="btn" id="startBtn">레스기릿</button>
+		</div>
+		<div class="container">
+			<div class="resultPanel" id="result">
+			</div>
+		</div>
 	</body>
 </html>
